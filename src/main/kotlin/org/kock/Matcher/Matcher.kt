@@ -14,12 +14,12 @@ abstract class Matcher {
     }
 
     fun addReturnValue(value: Any?) {
-        results.add(value);
+        results.add(value)
     }
 }
 
 fun getSignature(method: Method): String {
-    val f = method.name;
+    val f = method.name
 //    f.isAccessible = true
 //    val sigature: String = f.get(method) as String
     return f

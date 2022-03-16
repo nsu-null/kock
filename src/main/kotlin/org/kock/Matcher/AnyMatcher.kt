@@ -19,6 +19,6 @@ class AnyMatcher(
             }
             return true
         }
-        return false;
+        return false
     }
 }
