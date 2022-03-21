@@ -1,4 +1,5 @@
 import dev.kock.*
+import org.kock.*
 
 private open class ExampleClass {
     var prop1: String? = "kock"

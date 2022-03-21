@@ -1,24 +1,24 @@
-package dev.kock
+package org.kock
 
-/*
-Given the type, constructs a mock for it by calling a generated no-arg constructor
-which does nothing
- */
-inline fun <reified T: Any> kock(): T {
-    val constructors = T::class.constructors
-    val defaultConstructor = constructors.find { it.parameters.isEmpty() }
-        ?: throw IllegalArgumentException("Can't find default constructor")
-    return defaultConstructor.call()
+import org.kock.matcher.AnyMatcher
+
+inline fun <reified T> kock(): T {
+    val kock = KockCreator()
+    return kock.create(T::class.java)
+}
+
+fun any(): Any {
+    InterceptState.newMatcher = AnyMatcher::class.java
+    return Any()
+}
+
+fun anyInt(): Int {
+    any()
+    return 0
 }
 
 inline fun <reified T: Any> spy(): T {
     return kock()
-}
-
-class StubbingContext {
-
-    private val list = mutableListOf<Any>()
-
 }
 
 class VerifyingContext {
@@ -39,19 +39,9 @@ class VerifyingContext {
         private set
 }
 
-fun every(block: StubbingContext.() -> Unit): StubbingContext {
-    val context = StubbingContext()
-    context.block()
-    return context
-}
-
-infix fun StubbingContext.returns(something: Any?) {
-    println("well this is something we need to do")
-}
-
-infix fun StubbingContext.returnsMany(stuff: List<Any>) {
-    println("this isn't really implemented yet")
-}
+//infix fun StubbingContext.returns(something: Any?) {
+//    println("well this is something we need to do")
+//}
 
 fun verify(inverse: Boolean = false, block: VerifyingContext.() -> Unit): Boolean {
     val context = VerifyingContext()

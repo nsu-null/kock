@@ -1,4 +1,4 @@
-package org.kock.Matcher
+package org.kock.matcher
 
 import org.kock.InvocationDetails
 import java.lang.reflect.Method

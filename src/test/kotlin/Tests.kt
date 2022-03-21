@@ -1,7 +1,4 @@
-import org.kock.any
-import org.kock.anyInt
-import org.kock.every
-import org.kock.kock
+import org.kock.*
 import kotlin.test.Test
 import kotlin.collections.Collection
 import kotlin.test.assertEquals
@@ -12,24 +9,21 @@ class Tests {
         val list = kock<Collection<Int>>()
         every {
             list.size
-        }
-            .then(0)
-            .then(1)
-            .then(4)
+        } returnsMany listOf(0, 1, 4)
         assertEquals(0, list.size)
         assertEquals(1, list.size)
         assertEquals(4, list.size)
         assertEquals(4, list.size)
         every {
             list.size
-        }.then(100).then(200)
+        } returnsMany listOf(100, 200)
 
         assertEquals(list.size, 100)
         assertEquals(list.size, 200)
 
         every {
             list.isEmpty()
-        }.then(false).then(true)
+        } returnsMany listOf(false, true)
 
         assertEquals(list.isEmpty(), false)
         assertEquals(list.isEmpty(), true)
@@ -41,17 +35,17 @@ class Tests {
         val list = kock<Collection<Int>>()
         every {
             list.contains(anyInt())
-        }.then(true)
+        }.returns(true)
         every {
             list.contains(3)
-        }.then(false)
+        }.returns(false)
 
         assertEquals(true, list.contains(0))
         assertEquals(true, list.contains(1))
         assertEquals(true, list.contains(2))
         assertEquals(false, list.contains(3))
         assertEquals(true, list.contains(4))
-        every { list.size }.then(3).then(5)
+        every { list.size } returnsMany listOf(3, 5)
         assertEquals( list.size, 3)
         assertEquals( list.size, 5)
         assertEquals( list.size, 5)

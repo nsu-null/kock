@@ -1,16 +1,16 @@
 package org.kock
 
-import org.kock.Matcher.AnyMatcher
-import org.kock.Matcher.Matcher
-import org.kock.Matcher.SimpleArgumentMatcher
-import org.kock.Matcher.getSignature
+import org.kock.matcher.AnyMatcher
+import org.kock.matcher.Matcher
+import org.kock.matcher.SimpleArgumentMatcher
+import org.kock.matcher.getSignature
 import java.lang.reflect.Method
 import java.util.*
 import kotlin.collections.ArrayList
 
 object InterceptState {
     var returnValue: Any? = null
-    var builder: Builder? = null
+    var builder: StubbingContext? = null
     var newMatcher: Class<out Matcher>? = null
     var lock = false
 }
@@ -19,7 +19,7 @@ object InterceptState {
 class KockInterceptor {
     private val recordedInvocationDetails: List<InvocationDetails<*>> = LinkedList<InvocationDetails<*>>()
     private val matchers = ArrayList<Matcher>()
-    private var lastCalledBuilder: Builder? = null
+    private var lastCalledBuilder: StubbingContext? = null
 
     operator fun invoke(mock: Any, method: Method, args: Array<Any>): Any? {
         if (InterceptState.lock) {

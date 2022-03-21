@@ -1,4 +1,4 @@
-package org.kock.Matcher
+package org.kock.matcher
 
 import java.lang.reflect.Method
 
