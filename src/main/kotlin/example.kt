@@ -22,29 +22,6 @@ fun main() {
 
     val spy = spy<ExampleClass>()
 
-    every {
-        mock.stringRepr()
-        mock.otherMethod()
-        spy.stringRepr()
-    } returns "something else"
-
-    val smth = mock.stringRepr()
-    println(smth) // doesnt really work for now whatever
-
-    verify { mock.stringRepr() }
-
-    verifyTimes { mock.stringRepr() } isExactly 1
-    verifyTimes { mock.stringRepr() } isMoreThan 0
-    verifyTimes { mock.stringRepr() } isLessThan 10
-
-    verify {
-        exactOrder
-        mock.stringRepr()
-        mock.otherMethod()
-
-        anyOrder
-        mock.thirdMethod()
-    }
 
     every { mock.otherMethod() } returnsMany listOf(1, 3, 4, 5)
 }

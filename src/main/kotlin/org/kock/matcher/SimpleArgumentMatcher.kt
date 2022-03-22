@@ -6,32 +6,29 @@ import java.util.*
 
 
 class SimpleArgumentMatcher(
-    var className: String,
-    var methodSignature: String,
-    var arguments: Array<Any>
+    private var className: String,
+    private var methodSignature: String,
+    private var arguments: Array<Any>
 ) : Matcher() {
-
 
     override fun matches(mock: Any, method: Method, args: Array<Any>): Boolean {
         return mock::class.qualifiedName == className
                 && getSignature(method) == methodSignature
-                && Arrays.equals(args, arguments)
+                && args.contentEquals(arguments)
     }
 
-
-
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || javaClass != o.javaClass) return false
-        val behaviour = o as InvocationDetails<*>
-        return className == behaviour.className &&
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || javaClass != other.javaClass) return false
+        val behaviour = other as InvocationDetails
+        return className == behaviour.obj.javaClass.name &&
                 methodSignature == behaviour.methodName &&
-                Arrays.equals(arguments, behaviour.arguments)
+                arguments.contentEquals(behaviour.arguments)
     }
 
     override fun hashCode(): Int {
         var result = Objects.hash(className, methodSignature)
-        result = 31 * result + Arrays.hashCode(arguments)
+        result = 31 * result + arguments.contentHashCode()
         return result
     }
 

@@ -3,9 +3,9 @@ package org.kock.matcher
 import java.lang.reflect.Method
 
 class AnyMatcher(
-    var className: String,
-    var methodSignature: String,
-    var arguments: Array<Any>
+    private var className: String,
+    private var methodSignature: String,
+    private var arguments: Array<Any>
 ) : Matcher() {
     override fun matches(mock: Any, method: Method, args: Array<Any>): Boolean {
         if (getSignature(method) == methodSignature
