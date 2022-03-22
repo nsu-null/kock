@@ -7,7 +7,7 @@ class AnyMatcher(
     var methodSignature: String,
     var arguments: Array<Any>
 ) : Matcher() {
-    override fun match(mock: Any, method: Method, args: Array<Any>): Boolean {
+    override fun matches(mock: Any, method: Method, args: Array<Any>): Boolean {
         if (getSignature(method) == methodSignature
             && className == mock::class.qualifiedName
             && args.size == arguments.size

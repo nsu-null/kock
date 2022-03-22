@@ -39,10 +39,6 @@ class VerifyingContext {
         private set
 }
 
-//infix fun StubbingContext.returns(something: Any?) {
-//    println("well this is something we need to do")
-//}
-
 fun verify(inverse: Boolean = false, block: VerifyingContext.() -> Unit): Boolean {
     val context = VerifyingContext()
     context.block()

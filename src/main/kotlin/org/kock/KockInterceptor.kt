@@ -6,7 +6,6 @@ import org.kock.matcher.SimpleArgumentMatcher
 import org.kock.matcher.getSignature
 import java.lang.reflect.Method
 import java.util.*
-import kotlin.collections.ArrayList
 
 object InterceptState {
     var returnValue: Any? = null
@@ -15,10 +14,9 @@ object InterceptState {
     var lock = false
 }
 
-
 class KockInterceptor {
-    private val recordedInvocationDetails: List<InvocationDetails<*>> = LinkedList<InvocationDetails<*>>()
-    private val matchers = ArrayList<Matcher>()
+    private val recordedInvocationDetails: MutableList<InvocationDetails<*>> = LinkedList<InvocationDetails<*>>()
+    private val matchers = mutableListOf<Matcher>()
     private var lastCalledBuilder: StubbingContext? = null
 
     operator fun invoke(mock: Any, method: Method, args: Array<Any>): Any? {
@@ -29,7 +27,7 @@ class KockInterceptor {
         }
 
         for (matcher in matchers.reversed()) {
-            if (matcher.match(mock, method, args)) {
+            if (matcher.matches(mock, method, args)) {
                 return matcher.getValue()
             }
         }
@@ -38,7 +36,7 @@ class KockInterceptor {
 
     private fun grabNewCallData(mock: Any, method: Method, args: Array<Any>) {
         if (InterceptState.builder != lastCalledBuilder) {
-            var matcher: Matcher? = null
+            lateinit var matcher: Matcher
             when (InterceptState.newMatcher) {
                 SimpleArgumentMatcher::class.java -> matcher =
                     SimpleArgumentMatcher(mock::class.qualifiedName!!, getSignature(method), args)
@@ -46,7 +44,7 @@ class KockInterceptor {
                 null -> matcher = SimpleArgumentMatcher(mock::class.qualifiedName!!, getSignature(method), args)
             }
             InterceptState.newMatcher = null
-            matchers.add(matcher!!)
+            matchers.add(matcher)
         }
 
         val matcher = matchers.last()

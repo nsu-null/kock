@@ -4,7 +4,7 @@ import java.lang.reflect.Method
 
 abstract class Matcher {
     protected val results = ArrayDeque<Any?>()
-    abstract fun match(mock: Any, method: Method, args: Array<Any>): Boolean
+    abstract fun matches(mock: Any, method: Method, args: Array<Any>): Boolean
 
     fun getValue(): Any? {
         if (results.size <= 1) {

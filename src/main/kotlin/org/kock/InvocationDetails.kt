@@ -2,7 +2,6 @@ package org.kock
 
 import java.time.LocalDateTime
 
-
 class InvocationDetails<T>(
     var className: String,
     var methodName: String,

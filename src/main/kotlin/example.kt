@@ -1,4 +1,3 @@
-import dev.kock.*
 import org.kock.*
 
 private open class ExampleClass {

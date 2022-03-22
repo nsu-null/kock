@@ -12,7 +12,7 @@ class SimpleArgumentMatcher(
 ) : Matcher() {
 
 
-    override fun match(mock: Any, method: Method, args: Array<Any>): Boolean {
+    override fun matches(mock: Any, method: Method, args: Array<Any>): Boolean {
         return mock::class.qualifiedName == className
                 && getSignature(method) == methodSignature
                 && Arrays.equals(args, arguments)
