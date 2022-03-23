@@ -50,6 +50,15 @@ private fun verifyAssert(value: Boolean) = if (!value) throw VerificationExcepti
 fun verify(inverse: Boolean = false, block: VerifyingContext.() -> Unit)
         = verifyAssert(getVerificationInfo(block).isNotEmpty())
 
+fun verifyNot(block: VerifyingContext.() -> Unit) {
+    try {
+        verify(block = block)
+    } catch (_: VerificationException) {
+        return
+    }
+    throw VerificationException()
+}
+
 fun verifyTimes(inverse: Boolean = false, block: VerifyingContext.() -> Unit): Int
         = getVerificationInfo(block).size
 

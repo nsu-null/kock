@@ -85,5 +85,11 @@ class Tests {
             mock.hashCode()
             mock.toString()
         }
+
+        val thirdMock = kock<Any>()
+
+        verifyNot {
+            thirdMock.hashCode()
+        }
     }
 }
