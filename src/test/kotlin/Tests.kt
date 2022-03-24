@@ -78,12 +78,12 @@ class Tests {
 
         verify {
             exactOrder
-            mock.toString()
-            mock.hashCode()
+            otherMock.toString()
+            otherMock.hashCode()
 
             anyOrder
-            mock.hashCode()
-            mock.toString()
+            otherMock.hashCode()
+            otherMock.toString()
         }
 
         val thirdMock = kock<Any>()

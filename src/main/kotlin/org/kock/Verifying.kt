@@ -4,8 +4,9 @@ import org.kock.VerifyingContext.Mode.*
 import java.io.Closeable
 
 class VerifyingContext : Closeable {
+    lateinit var queries: List<InvocationDetails>
+    lateinit var invokations: List<InvocationDetails>
     private var mode = ANY_ORDER
-    var times = 0
     var exactOrder: Nothing? = null
         get() {
             mode = EXACT_ORDER
@@ -25,7 +26,11 @@ class VerifyingContext : Closeable {
     }
 
     override fun close() {
+        invokations = InterceptState.verifyAnswer
+        queries = InterceptState.verifyQueries
         InterceptState.isVerifyQuery = false
+        InterceptState.verifyAnswer = emptyList()
+        InterceptState.verifyQueries = emptyList()
     }
 
     enum class Mode {
@@ -35,20 +40,27 @@ class VerifyingContext : Closeable {
 
 class VerificationException : Exception()
 
-private fun getVerificationInfo(block: VerifyingContext.() -> Unit): List<InvocationDetails> {
-    VerifyingContext().use {
-        it.block()
-        return InterceptState.verifyAnswer
-    }
-}
+/**
+ * Returns list of invocations
+ */
+private fun getVerificationInfo(block: VerifyingContext.() -> Unit): VerifyingContext
+        = VerifyingContext().apply { use { it.block() } }
 
 private fun verifyAssert(value: Boolean) = if (!value) throw VerificationException() else Unit
 
 /**
  * Throws VerificationException if unverified
  */
-fun verify(inverse: Boolean = false, block: VerifyingContext.() -> Unit)
-        = verifyAssert(getVerificationInfo(block).isNotEmpty())
+fun verify(inverse: Boolean = false, block: VerifyingContext.() -> Unit) {
+    val context = getVerificationInfo(block)
+    context.queries.forEach { query ->
+        verifyAssert(context.invokations.any {
+            it.obj === query.obj
+            it.arguments.contentEquals(query.arguments)
+            it.methodName == query.methodName
+        })
+    }
+}
 
 fun verifyNot(block: VerifyingContext.() -> Unit) {
     try {
@@ -59,8 +71,12 @@ fun verifyNot(block: VerifyingContext.() -> Unit) {
     throw VerificationException()
 }
 
-fun verifyTimes(inverse: Boolean = false, block: VerifyingContext.() -> Unit): Int
-        = getVerificationInfo(block).size
+fun verifyTimes(inverse: Boolean = false, block: VerifyingContext.() -> Unit): Int {
+    val verificationInfo = getVerificationInfo(block)
+    require(verificationInfo.queries.size == 1) { "Bad queries for verifytimes. Should only be 1 query" }
+
+    return verificationInfo.invokations.size
+}
 
 infix fun Int.isExactly(times: Int) = verifyAssert(this == times)
 
