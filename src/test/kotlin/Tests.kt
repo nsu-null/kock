@@ -67,7 +67,7 @@ class Tests {
 
         verify { mock.toString() }
 
-        verifyTimes { mock.toString() } isExactly 1
+        verifyTimes { mock.toString() } isExactly  1
         verifyTimes { mock.toString() } isMoreThan 0
         verifyTimes { mock.toString() } isLessThan 10
 

@@ -3,7 +3,7 @@ package org.kock
 class StubbingContext(val stubbingBlock: () -> Unit)
 
 private fun StubbingContext.stubb(resultToEmit: Any?) {
-    InterceptState.lock = true
+    InterceptState.isEveryRequest = true
     InterceptState.builder = this
     InterceptState.returnValue = resultToEmit
     stubbingBlock()

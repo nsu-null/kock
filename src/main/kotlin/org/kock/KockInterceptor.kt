@@ -6,11 +6,11 @@ import org.kock.matcher.SimpleArgumentMatcher
 import org.kock.matcher.getSignature
 import java.lang.reflect.Method
 
-object InterceptState {
+internal object InterceptState {
     var returnValue: Any? = null
     var builder: StubbingContext? = null
     var newMatcher: Class<out Matcher>? = null
-    var lock = false
+    var isEveryRequest = false
 
     var isVerifyQuery = false
     var verifyQueries: List<InvocationDetails> = emptyList()
@@ -23,26 +23,27 @@ class KockInterceptor {
     private var lastCalledBuilder: Any? = null
 
     operator fun invoke(mock: Any, method: Method, args: Array<Any>): Any? {
-        if (InterceptState.isVerifyQuery) {
-            InterceptState.verifyAnswer += recordedInvocations
-                .filter { it.obj === mock && it.methodName == method.name && it.arguments.contentEquals(args) }
-            InterceptState.verifyQueries += InvocationDetails(mock, method.name, args)
-            return getDefaultValue(method.returnType)
-        } else {
-            if (InterceptState.lock) {
-                grabNewCallData(mock, method, args)
-
+        when {
+            InterceptState.isVerifyQuery -> {
+                InterceptState.verifyAnswer += recordedInvocations
+                    .filter { it.obj === mock && it.methodName == method.name && it.arguments.contentEquals(args) }
+                InterceptState.verifyQueries += InvocationDetails(mock, method.name, args)
                 return getDefaultValue(method.returnType)
             }
-
-            for (matcher in matchers.reversed()) {
-                if (matcher.matches(mock, method, args)) {
-                    recordedInvocations += InvocationDetails(mock, method.name, args)
-                    return matcher.getValue()
-                }
+            InterceptState.isEveryRequest -> {
+                grabNewCallData(mock, method, args)
+                return getDefaultValue(method.returnType)
             }
-            recordedInvocations += InvocationDetails(mock, method.name, args)
-            return getDefaultValue(method.returnType)
+            else -> {
+                for (matcher in matchers.reversed()) {
+                    if (matcher.matches(mock, method, args)) {
+                        recordedInvocations += InvocationDetails(mock, method.name, args)
+                        return matcher.getValue()
+                    }
+                }
+                recordedInvocations += InvocationDetails(mock, method.name, args)
+                return getDefaultValue(method.returnType)
+            }
         }
     }
 
@@ -63,7 +64,7 @@ class KockInterceptor {
         lastCalledBuilder = InterceptState.builder
         InterceptState.returnValue = null
         InterceptState.newMatcher = null
-        InterceptState.lock = false
+        InterceptState.isEveryRequest = false
     }
 }
 

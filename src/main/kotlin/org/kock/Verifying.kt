@@ -4,18 +4,25 @@ import org.kock.VerifyingContext.Mode.*
 import java.io.Closeable
 
 class VerifyingContext : Closeable {
-    lateinit var queries: List<InvocationDetails>
-    lateinit var invokations: List<InvocationDetails>
-    private var mode = ANY_ORDER
+    lateinit var groups: MutableList<InvocationGroup>
+    private var currentMode = ANY_ORDER
     var exactOrder: Nothing? = null
         get() {
-            mode = EXACT_ORDER
+            currentMode = if (currentMode != EXACT_ORDER)
+                run {
+                    flushInterceptorState()
+                    ANY_ORDER
+                } else EXACT_ORDER
             return field
         }
         private set
     var anyOrder: Nothing? = null
         get() {
-            mode = ANY_ORDER
+            currentMode = if (currentMode != ANY_ORDER)
+                run {
+                    flushInterceptorState()
+                    EXACT_ORDER
+                } else ANY_ORDER
             return field
         }
         private set
@@ -26,9 +33,15 @@ class VerifyingContext : Closeable {
     }
 
     override fun close() {
-        invokations = InterceptState.verifyAnswer
-        queries = InterceptState.verifyQueries
+        flushInterceptorState()
         InterceptState.isVerifyQuery = false
+        InterceptState.verifyAnswer = emptyList()
+        InterceptState.verifyQueries = emptyList()
+    }
+
+    private fun flushInterceptorState() {
+        groups += InvocationGroup(currentMode,
+            InterceptState.verifyQueries, InterceptState.verifyAnswer)
         InterceptState.verifyAnswer = emptyList()
         InterceptState.verifyQueries = emptyList()
     }
@@ -36,6 +49,10 @@ class VerifyingContext : Closeable {
     enum class Mode {
         EXACT_ORDER, ANY_ORDER
     }
+
+    data class InvocationGroup(val mode: Mode,
+                          val queries: List<InvocationDetails>,
+                          val actualInvocations: List<InvocationDetails>)
 }
 
 class VerificationException : Exception()
@@ -53,12 +70,21 @@ private fun verifyAssert(value: Boolean) = if (!value) throw VerificationExcepti
  */
 fun verify(inverse: Boolean = false, block: VerifyingContext.() -> Unit) {
     val context = getVerificationInfo(block)
-    context.queries.forEach { query ->
-        verifyAssert(context.invokations.any {
-            it.obj === query.obj
-            it.arguments.contentEquals(query.arguments)
-            it.methodName == query.methodName
-        })
+    context.groups.forEach { group ->
+        val (mode, queries, actualInvocations) = group
+        when (mode) {
+            EXACT_ORDER -> queries.forEach { query ->
+                TODO()
+            }
+            ANY_ORDER -> queries.forEach {
+
+            }
+        }
+//        verifyAssert(context.groups.any {
+//            it.obj === query.obj
+//            it.arguments.contentEquals(query.arguments)
+//            it.methodName == query.methodName
+//        })
     }
 }
 
@@ -75,7 +101,7 @@ fun verifyTimes(inverse: Boolean = false, block: VerifyingContext.() -> Unit): I
     val verificationInfo = getVerificationInfo(block)
     require(verificationInfo.queries.size == 1) { "Bad queries for verifytimes. Should only be 1 query" }
 
-    return verificationInfo.invokations.size
+    return verificationInfo.groups.size
 }
 
 infix fun Int.isExactly(times: Int) = verifyAssert(this == times)
