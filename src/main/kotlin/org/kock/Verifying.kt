@@ -2,6 +2,7 @@ package org.kock
 
 import org.kock.VerifyingContext.Mode.*
 import java.io.Closeable
+import java.util.*
 
 class VerifyingContext : Closeable {
     lateinit var groups: MutableList<InvocationGroup>
@@ -37,6 +38,19 @@ class VerifyingContext : Closeable {
         InterceptState.isVerifyQuery = false
         InterceptState.verifyAnswer = emptyList()
         InterceptState.verifyQueries = emptyList()
+
+        fun List<InvocationDetails>.sortedByTime(): List<InvocationDetails>
+                = this.sortedBy { it.time }
+
+        groups.map { group ->
+            with(group) {
+                InvocationGroup(
+                    mode,
+                    queries.sortedByTime(),
+                    actualInvocations.sortedByTime()
+                )
+            }
+        }
     }
 
     private fun flushInterceptorState() {
@@ -68,24 +82,19 @@ private fun verifyAssert(value: Boolean) = if (!value) throw VerificationExcepti
 /**
  * Throws VerificationException if unverified
  */
-fun verify(inverse: Boolean = false, block: VerifyingContext.() -> Unit) {
-    val context = getVerificationInfo(block)
-    context.groups.forEach { group ->
+fun verify(block: VerifyingContext.() -> Unit) {
+    val verifyingContext = getVerificationInfo(block)
+
+    verifyAssert(verifyingContext.groups.all { group ->
         val (mode, queries, actualInvocations) = group
         when (mode) {
-            EXACT_ORDER -> queries.forEach { query ->
-                TODO()
-            }
-            ANY_ORDER -> queries.forEach {
-
+            EXACT_ORDER ->
+                Collections.indexOfSubList(actualInvocations, queries) != -1
+            ANY_ORDER -> queries.all { query ->
+                actualInvocations.any { it isLike query }
             }
         }
-//        verifyAssert(context.groups.any {
-//            it.obj === query.obj
-//            it.arguments.contentEquals(query.arguments)
-//            it.methodName == query.methodName
-//        })
-    }
+    })
 }
 
 fun verifyNot(block: VerifyingContext.() -> Unit) {
@@ -97,11 +106,14 @@ fun verifyNot(block: VerifyingContext.() -> Unit) {
     throw VerificationException()
 }
 
-fun verifyTimes(inverse: Boolean = false, block: VerifyingContext.() -> Unit): Int {
-    val verificationInfo = getVerificationInfo(block)
-    require(verificationInfo.queries.size == 1) { "Bad queries for verifytimes. Should only be 1 query" }
-
-    return verificationInfo.groups.size
+fun verifyTimes(block: VerifyingContext.() -> Unit): Int {
+    val verifyingContext = getVerificationInfo(block)
+    require(verifyingContext.groups.size == 1) { "State switching is not allowed for verifyTimes" }
+    val queries = verifyingContext.groups[0].queries
+    require(queries.size == 1) {
+        "Bad queries for verifytimes. Should only be 1 query"
+    }
+    return queries.size
 }
 
 infix fun Int.isExactly(times: Int) = verifyAssert(this == times)

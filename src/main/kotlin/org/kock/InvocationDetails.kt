@@ -8,7 +8,6 @@ data class InvocationDetails(
     val arguments: Array<Any>
 ) {
     val time: LocalDateTime = LocalDateTime.now()!!
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -18,7 +17,6 @@ data class InvocationDetails(
         if (obj != other.obj) return false
         if (methodName != other.methodName) return false
         if (!arguments.contentEquals(other.arguments)) return false
-        if (time != other.time) return false
 
         return true
     }
@@ -27,7 +25,10 @@ data class InvocationDetails(
         var result = obj.hashCode()
         result = 31 * result + methodName.hashCode()
         result = 31 * result + arguments.contentHashCode()
-        result = 31 * result + time.hashCode()
         return result
     }
 }
+
+infix fun InvocationDetails.isLike(other: InvocationDetails): Boolean
+        = arguments.contentEquals(other.arguments)
+        && methodName == other.methodName

@@ -34,6 +34,7 @@ class KockInterceptor {
                 grabNewCallData(mock, method, args)
                 return getDefaultValue(method.returnType)
             }
+            // regular invocation
             else -> {
                 for (matcher in matchers.reversed()) {
                     if (matcher.matches(mock, method, args)) {
