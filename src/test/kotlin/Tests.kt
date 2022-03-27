@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 
 class Tests {
     @Test
-    fun testThen() {
+    fun testReturns() {
         val list = kock<Collection<Int>>()
         every {
             list.size
@@ -71,19 +71,58 @@ class Tests {
         verifyTimes { mock.toString() } isMoreThan 0
         verifyTimes { mock.toString() } isLessThan 10
 
-        val otherMock = kock<Any>()
+        val otherMock = kock<List<String>>()
 
-        otherMock.toString()
+        otherMock.size
+        otherMock.size
+        otherMock.hashCode()
+        otherMock.hashCode()
+        otherMock.hashCode()
         otherMock.hashCode()
 
         verify {
             exactOrder
-            otherMock.toString()
+            otherMock.size
             otherMock.hashCode()
 
             anyOrder
             otherMock.hashCode()
+            otherMock.size
+        }
+
+        verifyNot {
+            anyOrder
             otherMock.toString()
+        }
+
+        verify {
+            exactOrder
+            otherMock.size
+            otherMock.size
+            otherMock.hashCode()
+        }
+
+        verifyNot {
+            exactOrder
+            otherMock.hashCode()
+            otherMock.size
+        }
+
+        verify { // 4 times
+            exactOrder
+            otherMock.hashCode()
+            otherMock.hashCode()
+            otherMock.hashCode()
+            otherMock.hashCode()
+        }
+
+        verifyNot { // 5 times
+            exactOrder
+            otherMock.hashCode()
+            otherMock.hashCode()
+            otherMock.hashCode()
+            otherMock.hashCode()
+            otherMock.hashCode()
         }
 
         val thirdMock = kock<Any>()
@@ -92,4 +131,23 @@ class Tests {
             thirdMock.hashCode()
         }
     }
+
+    @Test
+    fun verifyNot() {
+        val mock = kock<List<String>>()
+
+        mock.size
+        mock.size
+        mock.hashCode()
+        mock.hashCode()
+        mock.hashCode()
+        mock.hashCode()
+
+        verifyNot {
+            exactOrder
+            mock.hashCode()
+            mock.size
+        }
+    }
+
 }

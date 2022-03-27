@@ -13,8 +13,8 @@ internal object InterceptState {
     var isEveryRequest = false
 
     var isVerifyQuery = false
-    var verifyQueries: List<InvocationDetails> = emptyList()
-    var verifyAnswer: List<InvocationDetails> = emptyList()
+    var verifyQueries = listOf<InvocationDetails>()
+    var verifyAnswer = listOf<InvocationDetails>() // stores all invocations for the current
 }
 
 class KockInterceptor {
@@ -25,9 +25,8 @@ class KockInterceptor {
     operator fun invoke(mock: Any, method: Method, args: Array<Any>): Any? {
         when {
             InterceptState.isVerifyQuery -> {
-                InterceptState.verifyAnswer += recordedInvocations
-                    .filter { it.obj === mock && it.methodName == method.name && it.arguments.contentEquals(args) }
                 InterceptState.verifyQueries += InvocationDetails(mock, method.name, args)
+                InterceptState.verifyAnswer = recordedInvocations
                 return getDefaultValue(method.returnType)
             }
             InterceptState.isEveryRequest -> {

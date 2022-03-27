@@ -5,25 +5,20 @@ import java.io.Closeable
 import java.util.*
 
 class VerifyingContext : Closeable {
-    lateinit var groups: MutableList<InvocationGroup>
+    var groups = mutableListOf<InvocationGroup>()
     private var currentMode = ANY_ORDER
+
     var exactOrder: Nothing? = null
         get() {
-            currentMode = if (currentMode != EXACT_ORDER)
-                run {
-                    flushInterceptorState()
-                    ANY_ORDER
-                } else EXACT_ORDER
+            flushInterceptorState()
+            currentMode = EXACT_ORDER
             return field
         }
         private set
     var anyOrder: Nothing? = null
         get() {
-            currentMode = if (currentMode != ANY_ORDER)
-                run {
-                    flushInterceptorState()
-                    EXACT_ORDER
-                } else ANY_ORDER
+            flushInterceptorState()
+            currentMode = ANY_ORDER
             return field
         }
         private set
@@ -38,24 +33,15 @@ class VerifyingContext : Closeable {
         InterceptState.isVerifyQuery = false
         InterceptState.verifyAnswer = emptyList()
         InterceptState.verifyQueries = emptyList()
-
-        fun List<InvocationDetails>.sortedByTime(): List<InvocationDetails>
-                = this.sortedBy { it.time }
-
-        groups.map { group ->
-            with(group) {
-                InvocationGroup(
-                    mode,
-                    queries.sortedByTime(),
-                    actualInvocations.sortedByTime()
-                )
-            }
-        }
     }
 
     private fun flushInterceptorState() {
+        val queries = InterceptState.verifyQueries
+        val subsetToCheck = InterceptState.verifyAnswer
+            .filter { invocation -> queries.any { query -> query isLike invocation } }
         groups += InvocationGroup(currentMode,
-            InterceptState.verifyQueries, InterceptState.verifyAnswer)
+            queries,
+            subsetToCheck)
         InterceptState.verifyAnswer = emptyList()
         InterceptState.verifyQueries = emptyList()
     }
@@ -88,8 +74,9 @@ fun verify(block: VerifyingContext.() -> Unit) {
     verifyAssert(verifyingContext.groups.all { group ->
         val (mode, queries, actualInvocations) = group
         when (mode) {
-            EXACT_ORDER ->
+            EXACT_ORDER -> {
                 Collections.indexOfSubList(actualInvocations, queries) != -1
+            }
             ANY_ORDER -> queries.all { query ->
                 actualInvocations.any { it isLike query }
             }
