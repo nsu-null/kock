@@ -6,9 +6,9 @@ import java.util.*
 
 
 class SimpleArgumentMatcher(
-    private var className: String,
-    private var methodSignature: String,
-    private var arguments: Array<Any>
+    private val className: String,
+    private val methodSignature: String,
+    private val arguments: Array<Any>
 ) : Matcher() {
 
     override fun matches(mock: Any, method: Method, args: Array<Any>): Boolean {
@@ -31,5 +31,4 @@ class SimpleArgumentMatcher(
         result = 31 * result + arguments.contentHashCode()
         return result
     }
-
 }

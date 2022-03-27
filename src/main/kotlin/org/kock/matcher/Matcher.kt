@@ -3,7 +3,7 @@ package org.kock.matcher
 import java.lang.reflect.Method
 
 abstract class Matcher {
-    protected val results = ArrayDeque<Any?>()
+    private val results = ArrayDeque<Any?>()
     abstract fun matches(mock: Any, method: Method, args: Array<Any>): Boolean
 
     fun getValue(): Any? {
@@ -19,8 +19,5 @@ abstract class Matcher {
 }
 
 fun getSignature(method: Method): String {
-    val f = method.name
-//    f.isAccessible = true
-//    val sigature: String = f.get(method) as String
-    return f
+    return method.name
 }
