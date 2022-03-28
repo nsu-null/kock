@@ -3,7 +3,7 @@ package org.kock
 data class InvocationDetails(
     val obj: Any,
     val methodName: String,
-    val arguments: Array<Any>
+    val arguments: Array<Any?>
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
