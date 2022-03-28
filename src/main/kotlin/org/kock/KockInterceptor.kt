@@ -1,60 +1,70 @@
 package org.kock
 
-import org.kock.Matcher.AnyMatcher
-import org.kock.Matcher.Matcher
-import org.kock.Matcher.SimpleArgumentMatcher
-import org.kock.Matcher.getSignature
+import org.kock.matcher.AnyMatcher
+import org.kock.matcher.Matcher
+import org.kock.matcher.SimpleArgumentMatcher
+import org.kock.matcher.getSignature
 import java.lang.reflect.Method
-import java.util.*
-import kotlin.collections.ArrayList
 
-object InterceptState {
+internal object InterceptState {
     var returnValue: Any? = null
-    var builder: Builder? = null
+    var builder: StubbingContext? = null
     var newMatcher: Class<out Matcher>? = null
-    var lock = false
+    var isEveryRequest = false
+
+    var isVerifyQuery = false
+    var verifyQueries = listOf<InvocationDetails>()
+    var verifyAnswer = listOf<InvocationDetails>() // stores all invocations for the current
 }
 
-
 class KockInterceptor {
-    private val recordedInvocationDetails: List<InvocationDetails<*>> = LinkedList<InvocationDetails<*>>()
-    private val matchers = ArrayList<Matcher>();
-    private var lastCalledBuilder: Builder? = null
+    private val recordedInvocations: MutableList<InvocationDetails> = mutableListOf()
+    private val matchers = mutableListOf<Matcher>()
+    private var lastCalledBuilder: Any? = null
 
     operator fun invoke(mock: Any, method: Method, args: Array<Any>): Any? {
-        if (InterceptState.lock) {
-            grabNewCallData(mock, method, args)
-
-            return getDefaultValue(method.returnType);
-        }
-
-        for (matcher in matchers.reversed()) {
-            if (matcher.match(mock, method, args)) {
-                return matcher.getValue();
+        when {
+            InterceptState.isVerifyQuery -> {
+                InterceptState.verifyQueries += InvocationDetails(mock, method.name, args)
+                InterceptState.verifyAnswer = recordedInvocations
+                return getDefaultValue(method.returnType)
+            }
+            InterceptState.isEveryRequest -> {
+                grabNewCallData(mock, method, args)
+                return getDefaultValue(method.returnType)
+            }
+            // regular invocation
+            else -> {
+                for (matcher in matchers.reversed()) {
+                    if (matcher.matches(mock, method, args)) {
+                        recordedInvocations += InvocationDetails(mock, method.name, args)
+                        return matcher.getValue()
+                    }
+                }
+                recordedInvocations += InvocationDetails(mock, method.name, args)
+                return getDefaultValue(method.returnType)
             }
         }
-        return getDefaultValue(method.returnType)
     }
 
     private fun grabNewCallData(mock: Any, method: Method, args: Array<Any>) {
         if (InterceptState.builder != lastCalledBuilder) {
-            var matcher: Matcher? = null;
+            lateinit var matcher: Matcher
             when (InterceptState.newMatcher) {
                 SimpleArgumentMatcher::class.java -> matcher =
                     SimpleArgumentMatcher(mock::class.qualifiedName!!, getSignature(method), args)
                 AnyMatcher::class.java -> matcher = AnyMatcher(mock::class.qualifiedName!!, getSignature(method), args)
                 null -> matcher = SimpleArgumentMatcher(mock::class.qualifiedName!!, getSignature(method), args)
             }
-            InterceptState.newMatcher = null;
-            matchers.add(matcher!!);
+            matchers.add(matcher)
         }
 
-        val matcher = matchers.last();
-        matcher.addReturnValue(InterceptState.returnValue);
+        val matcher = matchers.last()
+        matcher.addReturnValue(InterceptState.returnValue)
         lastCalledBuilder = InterceptState.builder
-        InterceptState.returnValue = null;
-        InterceptState.newMatcher = null;
-        InterceptState.lock = false;
+        InterceptState.returnValue = null
+        InterceptState.newMatcher = null
+        InterceptState.isEveryRequest = false
     }
 }
 

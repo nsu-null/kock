@@ -1,7 +1,6 @@
 package org.kock;
 
 import java.lang.reflect.Method;
-import java.util.*;
 
 public class KockInterceptorIntermediary {
     public KockInterceptor getKockInterceptor() {
