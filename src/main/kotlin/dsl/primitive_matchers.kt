@@ -1,7 +1,6 @@
 package dsl
 
 import org.kock.InterceptState
-import org.kock.any
 
 
 fun arrEq(array: ByteArray): ByteArray {

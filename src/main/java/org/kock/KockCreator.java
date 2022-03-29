@@ -1,7 +1,7 @@
 package org.kock;
 
 import net.bytebuddy.ByteBuddy;
-import net.bytebuddy.agent.*;
+import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.description.modifier.Visibility;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
@@ -10,10 +10,8 @@ import net.bytebuddy.implementation.FixedValue;
 import net.bytebuddy.implementation.MethodDelegation;
 import org.objenesis.ObjenesisStd;
 
-
-import java.lang.reflect.Method;
-
-import static net.bytebuddy.matcher.ElementMatchers.*;
+import static net.bytebuddy.matcher.ElementMatchers.any;
+import static net.bytebuddy.matcher.ElementMatchers.named;
 
 
 public class KockCreator {
@@ -46,7 +44,5 @@ public class KockCreator {
                 .make()
                 .load(getClass().getClassLoader(), ClassReloadingStrategy.fromInstalledAgent())
                 .getLoaded();
-
-
     }
 }

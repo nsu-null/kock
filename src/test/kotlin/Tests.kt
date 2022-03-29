@@ -1,3 +1,4 @@
+import org.kock.*
 import TestClasses.ClassWithStaticMethod
 import dsl.arrEq
 import net.bytebuddy.agent.ByteBuddyAgent
@@ -263,4 +264,12 @@ class Tests {
         assertEquals(3, ClassWithStaticMethod.staticFunction())
     }
 
+    @Test
+    fun callPrivate() {
+        val something = "something"
+        class WithPrivate {
+            private fun something() = something
+        }
+        assertEquals(something, WithPrivate().callPrivateByName("something"))
+    }
 }

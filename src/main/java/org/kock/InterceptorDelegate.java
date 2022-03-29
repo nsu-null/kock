@@ -15,4 +15,3 @@ public class InterceptorDelegate {
         return interceptor.invoke(mock, invokedMethod, arguments);
     }
 }
-
