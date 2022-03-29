@@ -4,7 +4,7 @@ import org.kock.matcher.ArgumentMatcher
 import org.objenesis.ObjenesisStd
 
 
-inline fun <reified T> kock(): T = KockCreator().create(T::class.java)
+inline fun <reified T> kock(): T = KockCreator().create(T::class.java, null)
 
 inline fun <reified T> any(): T {
     InterceptState.newMatcher.addArgumentMatcher { true }
@@ -31,7 +31,7 @@ fun <T> fixed(arg: T): T {
 fun fixedNull(): Any? = null
 
 
-inline fun <reified T : Any> spy(): T {
-    return kock()
+inline fun <reified T : Any> spy(obj: T): T {
+    return KockCreator().create(T::class.java, obj)
 }
 

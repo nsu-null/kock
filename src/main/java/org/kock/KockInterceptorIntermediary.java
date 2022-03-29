@@ -13,8 +13,8 @@ public class KockInterceptorIntermediary {
 
     KockInterceptor kockInterceptor;
 
-    public KockInterceptorIntermediary() {
-        this.kockInterceptor = new KockInterceptor();
+    public KockInterceptorIntermediary(Object spy) {
+        this.kockInterceptor = new KockInterceptor(spy);
     }
 
     public Object invoke(Object mock, Method method, Object[] args) {

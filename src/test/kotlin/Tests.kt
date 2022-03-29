@@ -122,6 +122,43 @@ class Tests {
     }
 
     @Test
+    fun simpleSpyTest() {
+        val map = spy(HashMap<Int, String>())
+        map[1] = "1"
+        map[2] = "2"
+        map[3] = "3"
+        assertEquals(3, map.size)
+        every {
+            map.size
+        } returnsMany listOf(4, 5, 6)
+        assertEquals(4, map.size)
+        assertEquals(5, map.size)
+        assertEquals(6, map.size)
+        assertEquals(6, map.size)
+    }
+
+    @Test
+    fun otherSimpleSpyTest() {
+        val map = spy(HashMap<Int, String>())
+        every {
+            map[any()]
+        } returnsMany listOf("a", "b", "c")
+        assertEquals(0, map.size)
+        assertEquals("a", map[1])
+        assertEquals("b", map[3333])
+        assertEquals("c", map[333311])
+        assertEquals("c", map[331])
+        every {
+            map[any()] = fixed("4")
+        } returns 1
+        map.put(1, "1")
+        map.put(2, "2")
+        map.put(3, "3")
+        map.put(4, "4")
+        assertEquals(3, map.size)
+    }
+
+    @Test
     fun verifying() {
 
         val something = "something"

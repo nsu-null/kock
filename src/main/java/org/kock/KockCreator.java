@@ -1,6 +1,7 @@
 package org.kock;
 
 import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.agent.*;
 import net.bytebuddy.description.modifier.Visibility;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.implementation.FieldAccessor;
@@ -8,12 +9,14 @@ import net.bytebuddy.implementation.MethodDelegation;
 import org.objenesis.ObjenesisStd;
 
 
+import java.lang.instrument.Instrumentation;
+
 import static net.bytebuddy.matcher.ElementMatchers.any;
 
 
 public class KockCreator {
 
-    public <T> T create(Class<T> targetClass) {
+    public <T> T create(Class<T> targetClass, T spy) {
         Class<? extends T> mockedClass = new ByteBuddy()
                 .subclass(targetClass)
                 .method(any())
@@ -26,7 +29,12 @@ public class KockCreator {
 
         var objenesis = new ObjenesisStd();
         T result = objenesis.newInstance(mockedClass);
-        ((KockInterceptable) result).setInterceptor(new KockInterceptorIntermediary());
+        ((KockInterceptable) result).setInterceptor(new KockInterceptorIntermediary(spy));
         return result;
+    }
+
+    public <T> T mockStatic(Class<T> targetqClass) {
+//        ByteBuddyAgent.install();
+//        new ByteBuddy().rebase(targetClass)
     }
 }

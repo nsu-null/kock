@@ -15,7 +15,7 @@ object InterceptState {
     var verifyAnswer = listOf<InvocationDetails>() // stores all invocations for the current
 }
 
-class KockInterceptor {
+class KockInterceptor(val spy: Any?) {
     private val recordedInvocations: MutableList<InvocationDetails> = mutableListOf()
     private val methodToMatcher = mutableMapOf<Method, ArrayList<Matcher>>().withDefault { ArrayList() }
     private var lastCalledBuilder: Any? = null
@@ -39,6 +39,9 @@ class KockInterceptor {
                     }
                 }
                 recordedInvocations += InvocationDetails(mock, method.name, args)
+                if (spy != null) {
+                    return method.invoke(spy, *args)
+                }
                 return getDefaultValue(method.returnType)
             }
         }
