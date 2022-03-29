@@ -40,9 +40,11 @@ class VerifyingContext : Closeable {
         val queries = InterceptState.verifyQueries
         val subsetToCheck = InterceptState.verifyAnswer
             .filter { invocation -> queries.any { query -> query isLike invocation } }
-        groups += InvocationGroup(currentMode,
+        groups += InvocationGroup(
+            currentMode,
             queries,
-            subsetToCheck)
+            subsetToCheck
+        )
         InterceptState.verifyAnswer = emptyList()
         InterceptState.verifyQueries = emptyList()
     }
@@ -51,9 +53,11 @@ class VerifyingContext : Closeable {
         EXACT_ORDER, ANY_ORDER
     }
 
-    data class InvocationGroup(val mode: Mode,
-                          val queries: List<InvocationDetails>,
-                          val actualInvocations: List<InvocationDetails>)
+    data class InvocationGroup(
+        val mode: Mode,
+        val queries: List<InvocationDetails>,
+        val actualInvocations: List<InvocationDetails>
+    )
 }
 
 class VerificationException : Exception()
@@ -61,8 +65,8 @@ class VerificationException : Exception()
 /**
  * Returns list of invocations
  */
-private fun getVerificationInfo(block: VerifyingContext.() -> Unit): VerifyingContext
-        = VerifyingContext().apply { use { it.block() } }
+private fun getVerificationInfo(block: VerifyingContext.() -> Unit): VerifyingContext =
+    VerifyingContext().apply { use { it.block() } }
 
 private fun verifyAssert(value: Boolean) = if (!value) throw VerificationException() else Unit
 

@@ -25,6 +25,5 @@ data class InvocationDetails(
     }
 }
 
-infix fun InvocationDetails.isLike(other: InvocationDetails): Boolean
-        = arguments.contentEquals(other.arguments)
+infix fun InvocationDetails.isLike(other: InvocationDetails): Boolean = arguments.contentEquals(other.arguments)
         && methodName == other.methodName
