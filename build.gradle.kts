@@ -15,6 +15,7 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation("net.bytebuddy:byte-buddy:1.12.8")
+    implementation("net.bytebuddy:byte-buddy-agent:1.12.8")
     implementation("org.objenesis:objenesis:3.2")
 
 }

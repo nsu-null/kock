@@ -1,15 +1,13 @@
 package org.kock
 
-import org.kock.matcher.AnyMatcher
-import org.kock.matcher.Matcher
-import org.kock.matcher.SimpleArgumentMatcher
-import org.kock.matcher.getSignature
+import org.kock.matchers.Matcher
+import org.kock.matchers.simpleArgumentMatcher
 import java.lang.reflect.Method
 
-internal object InterceptState {
+object InterceptState {
     var returnValue: Any? = null
     var builder: StubbingContext? = null
-    var newMatcher: Class<out Matcher>? = null
+    var newMatcher: Matcher = Matcher()
     var isEveryRequest = false
 
     var isVerifyQuery = false
@@ -17,12 +15,12 @@ internal object InterceptState {
     var verifyAnswer = listOf<InvocationDetails>() // stores all invocations for the current
 }
 
-class KockInterceptor {
+class KockInterceptor(val spy: Any?) {
     private val recordedInvocations: MutableList<InvocationDetails> = mutableListOf()
-    private val matchers = mutableListOf<Matcher>()
+    private val methodToMatcher = mutableMapOf<Method, ArrayList<Matcher>>().withDefault { ArrayList() }
     private var lastCalledBuilder: Any? = null
 
-    operator fun invoke(mock: Any, method: Method, args: Array<Any>): Any? {
+    operator fun invoke(mock: Any?, method: Method, args: Array<Any?>): Any? {
         when {
             InterceptState.isVerifyQuery -> {
                 InterceptState.verifyQueries += InvocationDetails(mock, method.name, args)
@@ -35,35 +33,40 @@ class KockInterceptor {
             }
             // regular invocation
             else -> {
-                for (matcher in matchers.reversed()) {
-                    if (matcher.matches(mock, method, args)) {
-                        recordedInvocations += InvocationDetails(mock, method.name, args)
+                recordedInvocations += InvocationDetails(mock, method.name, args)
+                for (matcher in methodToMatcher.getValue(method).reversed()) {
+                    if (matcher.matches(args)) {
                         return matcher.getValue()
                     }
                 }
-                recordedInvocations += InvocationDetails(mock, method.name, args)
+                if (spy != null) {
+                    return method.invoke(spy, *args)
+                }
                 return getDefaultValue(method.returnType)
             }
         }
     }
 
-    private fun grabNewCallData(mock: Any, method: Method, args: Array<Any>) {
+    private fun grabNewCallData(mock: Any?, method: Method, args: Array<Any?>) {
         if (InterceptState.builder != lastCalledBuilder) {
-            lateinit var matcher: Matcher
-            when (InterceptState.newMatcher) {
-                SimpleArgumentMatcher::class.java -> matcher =
-                    SimpleArgumentMatcher(mock::class.qualifiedName!!, getSignature(method), args)
-                AnyMatcher::class.java -> matcher = AnyMatcher(mock::class.qualifiedName!!, getSignature(method), args)
-                null -> matcher = SimpleArgumentMatcher(mock::class.qualifiedName!!, getSignature(method), args)
+            var matcher = InterceptState.newMatcher
+            InterceptState.newMatcher = Matcher()
+            if (matcher.getSize() == 0) {
+                matcher = simpleArgumentMatcher(args)
             }
-            matchers.add(matcher)
+            if (args.size != matcher.getSize()) {
+                throw IllegalArgumentException("You must provide arguments matchers with size the same as arguments of mockable function")
+            }
+            if (!methodToMatcher.containsKey(method)) {
+                methodToMatcher.put(method, ArrayList())
+            }
+            methodToMatcher.getValue(method).add(matcher)
         }
 
-        val matcher = matchers.last()
+        val matcher = methodToMatcher.getValue(method).last()
         matcher.addReturnValue(InterceptState.returnValue)
         lastCalledBuilder = InterceptState.builder
         InterceptState.returnValue = null
-        InterceptState.newMatcher = null
         InterceptState.isEveryRequest = false
     }
 }
