@@ -1,6 +1,7 @@
 package org.kock
 
-import org.kock.VerifyingContext.Mode.*
+import org.kock.VerifyingContext.Mode.ANY_ORDER
+import org.kock.VerifyingContext.Mode.EXACT_ORDER
 import java.io.Closeable
 import java.util.*
 
