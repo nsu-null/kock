@@ -1,10 +1,10 @@
+import TestClasses.ClassWithStaticMethod
 import dsl.arrEq
+import net.bytebuddy.agent.ByteBuddyAgent
 import org.junit.jupiter.api.assertThrows
 import org.kock.*
 import java.io.InputStream
-import java.lang.IllegalArgumentException
 import kotlin.test.Test
-import kotlin.collections.Collection
 import kotlin.test.assertEquals
 
 class Tests {
@@ -254,6 +254,13 @@ class Tests {
             mock.hashCode()
             mock.size
         }
+    }
+
+    @Test
+    fun testStaticMocking() {
+        ByteBuddyAgent.install()
+        kockStatic<ClassWithStaticMethod.Companion>(ClassWithStaticMethod.Companion::staticFunction, 3)
+        assertEquals(3, ClassWithStaticMethod.staticFunction())
     }
 
 }

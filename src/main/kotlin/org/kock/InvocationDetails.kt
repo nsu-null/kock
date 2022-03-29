@@ -1,7 +1,7 @@
 package org.kock
 
 data class InvocationDetails(
-    val obj: Any,
+    val obj: Any?,
     val methodName: String,
     val arguments: Array<Any?>
 ) {

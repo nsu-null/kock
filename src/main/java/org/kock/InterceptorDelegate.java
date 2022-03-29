@@ -1,6 +1,7 @@
 package org.kock;
 
 import net.bytebuddy.implementation.bind.annotation.*;
+
 import java.lang.reflect.Method;
 
 public class InterceptorDelegate {
@@ -14,3 +15,4 @@ public class InterceptorDelegate {
         return interceptor.invoke(mock, invokedMethod, arguments);
     }
 }
+

@@ -20,7 +20,7 @@ class KockInterceptor(val spy: Any?) {
     private val methodToMatcher = mutableMapOf<Method, ArrayList<Matcher>>().withDefault { ArrayList() }
     private var lastCalledBuilder: Any? = null
 
-    operator fun invoke(mock: Any, method: Method, args: Array<Any?>): Any? {
+    operator fun invoke(mock: Any?, method: Method, args: Array<Any?>): Any? {
         when {
             InterceptState.isVerifyQuery -> {
                 InterceptState.verifyQueries += InvocationDetails(mock, method.name, args)
@@ -33,12 +33,12 @@ class KockInterceptor(val spy: Any?) {
             }
             // regular invocation
             else -> {
+                recordedInvocations += InvocationDetails(mock, method.name, args)
                 for (matcher in methodToMatcher.getValue(method).reversed()) {
                     if (matcher.matches(args)) {
                         return matcher.getValue()
                     }
                 }
-                recordedInvocations += InvocationDetails(mock, method.name, args)
                 if (spy != null) {
                     return method.invoke(spy, *args)
                 }
@@ -47,7 +47,7 @@ class KockInterceptor(val spy: Any?) {
         }
     }
 
-    private fun grabNewCallData(mock: Any, method: Method, args: Array<Any?>) {
+    private fun grabNewCallData(mock: Any?, method: Method, args: Array<Any?>) {
         if (InterceptState.builder != lastCalledBuilder) {
             var matcher = InterceptState.newMatcher
             InterceptState.newMatcher = Matcher()
