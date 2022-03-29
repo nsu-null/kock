@@ -150,4 +150,13 @@ class Tests {
         }
     }
 
+    @Test
+    fun callPrivate() {
+        val something = "something"
+        class WithPrivate {
+            private fun something() = something
+        }
+        assertEquals(something, WithPrivate().callPrivateByName("something"))
+    }
+
 }
