@@ -33,8 +33,4 @@ public class KockCreator {
         return result;
     }
 
-    public <T> T mockStatic(Class<T> targetqClass) {
-//        ByteBuddyAgent.install();
-//        new ByteBuddy().rebase(targetClass)
-    }
 }

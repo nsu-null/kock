@@ -33,12 +33,12 @@ class KockInterceptor(val spy: Any?) {
             }
             // regular invocation
             else -> {
+                recordedInvocations += InvocationDetails(mock, method.name, args)
                 for (matcher in methodToMatcher.getValue(method).reversed()) {
                     if (matcher.matches(args)) {
                         return matcher.getValue()
                     }
                 }
-                recordedInvocations += InvocationDetails(mock, method.name, args)
                 if (spy != null) {
                     return method.invoke(spy, *args)
                 }
