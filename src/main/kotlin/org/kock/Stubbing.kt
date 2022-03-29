@@ -1,11 +1,14 @@
 package org.kock
 
+import org.kock.matchers.Matcher
+
 class StubbingContext(val stubbingBlock: () -> Unit)
 
 private fun StubbingContext.stubb(resultToEmit: Any?) {
     InterceptState.isEveryRequest = true
     InterceptState.builder = this
     InterceptState.returnValue = resultToEmit
+    InterceptState.newMatcher = Matcher()
     stubbingBlock()
 }
 
@@ -17,6 +20,6 @@ infix fun StubbingContext.returnsMany(valuesToEmit: List<Any?>) {
     valuesToEmit.forEach { valueToEmit -> this returns valueToEmit }
 }
 
-infix fun <T> T?.then(next: T?) : List<T?> = listOf(this, next)
+infix fun <T> T?.then(next: T?): List<T?> = listOf(this, next)
 
-infix fun <T> List<T?>.then(next: T?) : List<T?> = this + next
+infix fun <T> List<T?>.then(next: T?): List<T?> = this + next
