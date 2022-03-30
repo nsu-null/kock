@@ -25,28 +25,28 @@ class VerifyingContext : Closeable {
         private set
 
     init {
-        check(!InterceptState.isVerifyQuery) { "Verification has already started" }
-        InterceptState.isVerifyQuery = true
+        check(!CurrentInterceptState.isVerifyQuery) { "Verification has already started" }
+        CurrentInterceptState.isVerifyQuery = true
     }
 
     override fun close() {
         flushInterceptorState()
-        InterceptState.isVerifyQuery = false
-        InterceptState.verifyAnswer = emptyList()
-        InterceptState.verifyQueries = emptyList()
+        CurrentInterceptState.isVerifyQuery = false
+        CurrentInterceptState.verifyAnswer = emptyList()
+        CurrentInterceptState.verifyQueries = emptyList()
     }
 
     private fun flushInterceptorState() {
-        val queries = InterceptState.verifyQueries
-        val subsetToCheck = InterceptState.verifyAnswer
+        val queries = CurrentInterceptState.verifyQueries
+        val subsetToCheck = CurrentInterceptState.verifyAnswer
             .filter { invocation -> queries.any { query -> query isLike invocation } }
         groups += InvocationGroup(
             currentMode,
             queries,
             subsetToCheck
         )
-        InterceptState.verifyAnswer = emptyList()
-        InterceptState.verifyQueries = emptyList()
+        CurrentInterceptState.verifyAnswer = emptyList()
+        CurrentInterceptState.verifyQueries = emptyList()
     }
 
     enum class Mode {

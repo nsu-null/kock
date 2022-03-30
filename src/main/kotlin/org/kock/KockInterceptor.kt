@@ -4,7 +4,11 @@ import org.kock.matchers.Matcher
 import org.kock.matchers.simpleArgumentMatcher
 import java.lang.reflect.Method
 
-object InterceptState {
+private val threadLocalState = ThreadLocal<InterceptState>().apply { set(InterceptState()) }
+val CurrentInterceptState: InterceptState
+    get() = threadLocalState.get()
+
+class InterceptState {
     var returnValue: Any? = null
     var builder: StubbingContext? = null
     var newMatcher: Matcher = Matcher()
@@ -12,7 +16,7 @@ object InterceptState {
 
     var isVerifyQuery = false
     var verifyQueries = listOf<InvocationDetails>()
-    var verifyAnswer = listOf<InvocationDetails>() // stores all invocations for the current
+    var verifyAnswer = listOf<InvocationDetails>()
 }
 
 class KockInterceptor(val spy: Any?) {
@@ -22,12 +26,12 @@ class KockInterceptor(val spy: Any?) {
 
     operator fun invoke(mock: Any?, method: Method, args: Array<Any?>): Any? {
         when {
-            InterceptState.isVerifyQuery -> {
-                InterceptState.verifyQueries += InvocationDetails(mock, method.name, args)
-                InterceptState.verifyAnswer = recordedInvocations
+            CurrentInterceptState.isVerifyQuery -> {
+                CurrentInterceptState.verifyQueries += InvocationDetails(mock, method.name, args)
+                CurrentInterceptState.verifyAnswer = recordedInvocations
                 return getDefaultValue(method.returnType)
             }
-            InterceptState.isEveryRequest -> {
+            CurrentInterceptState.isEveryRequest -> {
                 grabNewCallData(mock, method, args)
                 return getDefaultValue(method.returnType)
             }
@@ -48,9 +52,9 @@ class KockInterceptor(val spy: Any?) {
     }
 
     private fun grabNewCallData(mock: Any?, method: Method, args: Array<Any?>) {
-        if (InterceptState.builder != lastCalledBuilder) {
-            var matcher = InterceptState.newMatcher
-            InterceptState.newMatcher = Matcher()
+        if (CurrentInterceptState.builder != lastCalledBuilder) {
+            var matcher = CurrentInterceptState.newMatcher
+            CurrentInterceptState.newMatcher = Matcher()
             if (matcher.getSize() == 0) {
                 matcher = simpleArgumentMatcher(args)
             }
@@ -64,10 +68,10 @@ class KockInterceptor(val spy: Any?) {
         }
 
         val matcher = methodToMatcher.getValue(method).last()
-        matcher.addReturnValue(InterceptState.returnValue)
-        lastCalledBuilder = InterceptState.builder
-        InterceptState.returnValue = null
-        InterceptState.isEveryRequest = false
+        matcher.addReturnValue(CurrentInterceptState.returnValue)
+        lastCalledBuilder = CurrentInterceptState.builder
+        CurrentInterceptState.returnValue = null
+        CurrentInterceptState.isEveryRequest = false
     }
 }
 

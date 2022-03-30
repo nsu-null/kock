@@ -10,7 +10,7 @@ inline fun <reified T> kockStatic(method: KFunction<*>, value: Any?) =
     KockCreator().mockFinal(T::class.java, method.name, value)
 
 inline fun <reified T> any(): T {
-    InterceptState.newMatcher.addArgumentMatcher { true }
+    CurrentInterceptState.newMatcher.addArgumentMatcher { true }
     val objenesis = ObjenesisStd()
     val result: T = objenesis.newInstance(T::class.java)
     return result
@@ -19,7 +19,7 @@ inline fun <reified T> any(): T {
 inline fun <reified T> any(crossinline f: (T) -> Boolean): T = anyUnchecked { f(it!!) }
 
 inline fun <reified T> anyUnchecked(matcher: ArgumentMatcher<T>): T {
-    InterceptState.newMatcher.addArgumentMatcher { matcher.matches(it as T?) }
+    CurrentInterceptState.newMatcher.addArgumentMatcher { matcher.matches(it as T?) }
     val objenesis = ObjenesisStd()
     val result: T = objenesis.newInstance(T::class.java)
     return result
@@ -27,7 +27,7 @@ inline fun <reified T> anyUnchecked(matcher: ArgumentMatcher<T>): T {
 
 
 fun <T> fixed(arg: T): T {
-    InterceptState.newMatcher.addArgumentMatcher { arg!!.equals(it) }
+    CurrentInterceptState.newMatcher.addArgumentMatcher { arg!!.equals(it) }
     return arg
 }
 
