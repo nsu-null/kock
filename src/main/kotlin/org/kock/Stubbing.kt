@@ -5,10 +5,10 @@ import org.kock.matchers.Matcher
 class StubbingContext(val stubbingBlock: () -> Unit)
 
 private fun StubbingContext.stubb(resultToEmit: Any?) {
-    InterceptState.isEveryRequest = true
-    InterceptState.builder = this
-    InterceptState.returnValue = resultToEmit
-    InterceptState.newMatcher = Matcher()
+    CurrentInterceptState.isEveryRequest = true
+    CurrentInterceptState.builder = this
+    CurrentInterceptState.returnValue = resultToEmit
+    CurrentInterceptState.newMatcher = Matcher()
     stubbingBlock()
 }
 
